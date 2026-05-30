@@ -7,8 +7,9 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..schemas.document import DocumentResponse
+from ..schemas.document import DocumentProcessResponse, DocumentResponse, DocumentStatusResponse
 from ..services.document_service import DocumentService
+from ..services.ingestion_service import IngestionService
 
 router = APIRouter()
 logger = structlog.get_logger("app.routes.documents")
@@ -36,4 +37,18 @@ def get_document(document_id: uuid.UUID, db: Session = Depends(get_db)) -> Docum
     if document is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
     return DocumentResponse.model_validate(document)
+
+
+@router.post("/{document_id}/process", response_model=DocumentStatusResponse)
+def process_document(document_id: uuid.UUID, db: Session = Depends(get_db)) -> DocumentStatusResponse:
+    service = IngestionService(db)
+    document = service.process_document(document_id)
+    logger.info(
+        "document_route_process_success",
+        document_id=str(document.id),
+        status=document.status,
+        total_chunks=document.total_chunks,
+    )
+    return DocumentStatusResponse.model_validate(document)
+
 
