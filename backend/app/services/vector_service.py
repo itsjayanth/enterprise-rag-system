@@ -115,6 +115,7 @@ class VectorService:
                     "page_number": metadata.get("page_number"),
                     "content": metadata.get("content"),
                     "chunk_index": metadata.get("chunk_index"),
+                    "source_file": metadata.get("source_file"),
                 }
             )
         return results
@@ -122,4 +123,3 @@ class VectorService:
     def delete_document_vectors(self, document_id: str) -> None:
         self.index.delete(filter={"document_id": {"$eq": document_id}})
         logger.info("pinecone_document_vectors_deleted", document_id=document_id)
-
