@@ -14,6 +14,9 @@ This directory contains the **complete phase-by-phase implementation plan** for 
 |------|-------|---------|
 | `00-MASTER-PLAN.md` | Master Implementation Plan | Overview, strategy, and execution flow |
 | `01-environment-setup.md` | Environment Setup Guide | Prerequisites, installation, verification |
+| `DEV-SETUP-GUIDE.md` | Development Setup (Quick) | Fast daily workflow for running the stack locally |
+
+**📌 Important:** The detailed implementation docs now cover the full MVP path end-to-end. Use `DEV-SETUP-GUIDE.md` for a faster day-to-day loop, and the numbered phase documents for the authoritative build sequence.
 
 ### **Phase-by-Phase Execution**
 
@@ -33,6 +36,8 @@ This directory contains the **complete phase-by-phase implementation plan** for 
 | **12** | `13-phase-12-frontend.md` | Frontend | 5-6h | Next.js UI, chat interface |
 
 **Total Estimated Time:** 35-45 hours (1-2 weeks of focused work)
+
+**Status:** ✅ Phase documents `03` through `13` are now available in this directory.
 
 ---
 

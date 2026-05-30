@@ -1,0 +1,19 @@
+Incident Response Playbook
+==========================
+
+Severity Levels
+---------------
+A Severity 1 incident affects a critical customer-facing workflow or causes a full outage.
+A Severity 1 incident must be acknowledged within 15 minutes.
+
+Coordination
+------------
+The on-call lead assigns the incident commander.
+During active incidents, the primary Slack coordination channel is #incident-war-room.
+Status updates must be posted every 30 minutes until mitigation is complete.
+
+Post-Incident Work
+------------------
+A postmortem draft must be completed within 5 business days.
+Action items should include an owner, due date, and rollback or prevention plan.
+

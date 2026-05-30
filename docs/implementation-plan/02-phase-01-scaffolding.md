@@ -95,15 +95,22 @@ MODEL_CACHE_DIR=./data/models
 # ML MODELS
 # ===================================
 EMBEDDING_MODEL_NAME=BAAI/bge-m3
+# Use this same embedding model for both:
+# - document chunk embeddings stored in the vector DB
+# - query embeddings used during retrieval
 RERANKER_MODEL_NAME=BAAI/bge-reranker-v2-m3
-LLM_MODEL_NAME=meta-llama/Meta-Llama-3.1-8B-Instruct
+# LOCAL MAC: Ollama model name (no GPU required)
+LLM_MODEL_NAME=llama3.1:8b
 
 # ===================================
 # ML SERVICE URLS (Docker Compose)
 # ===================================
 EMBEDDING_SERVICE_URL=http://embedding-service:8001
 RERANKER_SERVICE_URL=http://reranker-service:8002
-LLM_SERVICE_URL=http://llm-service:8000
+# LOCAL MAC: Ollama runs on the host, not in Docker
+# When calling from Docker containers use host.docker.internal
+# When running backend locally use localhost
+LLM_SERVICE_URL=http://localhost:11434/v1
 
 # ===================================
 # RAG CONFIGURATION
@@ -252,13 +259,7 @@ services:
       - ./data/models:/data/models
     ports:
       - "8001:8001"
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
+    # No GPU reservation needed — runs on CPU on local Mac
     networks:
       - rag-network
 
@@ -276,28 +277,18 @@ services:
     networks:
       - rag-network
 
-  llm-service:
-    image: vllm/vllm-openai:latest
-    container_name: enterprise-rag-llm
-    environment:
-      - HF_HOME=/data/models
-    volumes:
-      - ./data/models:/data/models
-    ports:
-      - "8003:8000"
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
-    command:
-      - --model=${LLM_MODEL_NAME}
-      - --dtype=float16
-      - --max-model-len=8192
-    networks:
-      - rag-network
+  # ==========================================
+  # LLM Service
+  # LOCAL MAC: Ollama runs natively, not in Docker.
+  # Start it with: ollama serve
+  # The backend calls http://host.docker.internal:11434/v1
+  # or http://localhost:11434/v1 when running outside Docker.
+  #
+  # FUTURE GPU: Replace with vllm/vllm-openai:latest when a GPU is available.
+  # ==========================================
+
+  # llm-service is intentionally omitted from Docker Compose for local Mac dev.
+  # Ollama runs as a system service on the Mac host.
 
   # ==========================================
   # Frontend Service

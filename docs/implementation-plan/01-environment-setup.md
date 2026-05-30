@@ -25,15 +25,22 @@ Before starting implementation, ensure you have the following installed:
 | **Postman** | API testing |
 | **pgAdmin** | Database management |
 
-### GPU Requirements
+### Hardware Requirements
 
-| Environment | GPU | VRAM | Notes |
-|-------------|-----|------|-------|
-| **Development (CPU)** | None | N/A | Use Ollama for LLM (slower) |
-| **Development (GPU)** | RTX 3060+ | 12GB+ | For local vLLM |
-| **Production** | A10G / T4 | 24GB+ | Full performance |
+| Environment | Hardware | Notes |
+|-------------|----------|-------|
+| **Local Mac (this project)** | Apple Silicon or Intel Mac, 16GB+ RAM | No GPU needed — all ML runs on CPU; Ollama uses Apple MPS if available |
+| **Future GPU upgrade** | NVIDIA RTX 3060+ / A10G | Switch to vLLM for LLM once GPU is available |
 
-**For this implementation:** We'll support CPU-only development with Ollama fallback.
+**For this implementation:** The entire stack runs on your local Mac CPU. No GPU is required to start.
+
+- Embedding service → BGE-M3 on CPU (slower but fully functional)
+- Reranker service → BGE-reranker on CPU (fast enough)
+- LLM → **Ollama** running Llama 3.1:8B locally (OpenAI-compatible API)
+- Vector DB → **Pinecone** (cloud, free tier)
+- All other infra (Postgres, Redis) → Docker on Mac
+
+**GPU note:** vLLM requires a CUDA GPU and does **not** run on Mac. We use Ollama instead, which works natively on Mac and leverages Apple MPS (Metal) on Apple Silicon for faster inference than pure CPU.
 
 ---
 
@@ -99,7 +106,42 @@ docker compose version
 **Windows:**
 Download [Docker Desktop for Windows](https://www.docker.com/products/docker-desktop/)
 
-### 4. Install Make (Optional but Recommended)
+### 4. Install Ollama (Required — LLM runtime)
+
+Ollama is the LLM runtime for local Mac development. It replaces vLLM which requires a GPU.
+
+**macOS:**
+```bash
+brew install ollama
+```
+
+Or download from [ollama.com](https://ollama.com/download).
+
+After install, pull the LLM model:
+
+```bash
+ollama pull llama3.1:8b
+```
+
+This downloads ~4.7 GB. It runs on CPU on all Macs and on Apple MPS (Metal GPU) on Apple Silicon, giving noticeably faster token generation on M1/M2/M3/M4.
+
+Verify it works:
+
+```bash
+ollama run llama3.1:8b "Say hello in one sentence."
+```
+
+Verify the API is accessible:
+
+```bash
+curl http://localhost:11434/v1/models
+```
+
+Ollama exposes an OpenAI-compatible API at `http://localhost:11434/v1` — the backend client uses this endpoint directly.
+
+---
+
+### 5. Install Make (Optional but Recommended)
 
 **macOS:**
 ```bash
@@ -238,7 +280,17 @@ MODEL_CACHE_DIR=./data/models
 # ML Services
 EMBEDDING_SERVICE_URL=http://localhost:8001
 RERANKER_SERVICE_URL=http://localhost:8002
-LLM_SERVICE_URL=http://localhost:8000
+
+# LLM — Ollama (local Mac, no GPU needed)
+# Ollama exposes an OpenAI-compatible API
+LLM_SERVICE_URL=http://localhost:11434/v1
+LLM_MODEL_NAME=llama3.1:8b
+
+# Embedding rule
+# Use the same embedding model for:
+# - document chunk indexing
+# - query embedding during retrieval
+# For this project that model is BAAI/bge-m3.
 
 # Application
 ENVIRONMENT=development
@@ -554,8 +606,10 @@ Before starting Phase 1, verify:
 - [ ] Python 3.11+ installed and working
 - [ ] Node.js 20+ installed and working
 - [ ] Docker and Docker Compose working
-- [ ] PostgreSQL starts via Docker Compose
-- [ ] Redis starts via Docker Compose
+- [ ] Ollama installed and `llama3.1:8b` downloaded
+- [ ] Ollama API responds (`curl http://localhost:11434/v1/models`)
+- [ ] PostgreSQL starts via `docker compose up -d postgres redis`
+- [ ] Redis starts via `docker compose up -d postgres redis`
 - [ ] Can connect to PostgreSQL
 - [ ] Can connect to Redis
 - [ ] `.env` file created with Pinecone credentials

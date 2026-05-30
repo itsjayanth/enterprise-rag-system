@@ -1,6 +1,6 @@
 # Phases 2-12: Quick Reference Guide
 
-This document provides a **quick overview** of all implementation phases. Each phase will have a detailed execution document.
+This document provides a **quick overview** of all implementation phases. The detailed execution documents for Phases 2-12 are now available in this directory.
 
 ---
 
@@ -203,7 +203,8 @@ print(vectors)
 ## Phase 8: LLM Service (3-4 hours)
 
 ### Objective
-Setup vLLM to serve Llama 3.1-8B with streaming support.
+Setup **Ollama** to serve Llama 3.1:8B locally with streaming support.
+(vLLM is the future GPU upgrade — not used for local Mac dev.)
 
 ### Key Files to Create
 ```
@@ -212,22 +213,21 @@ backend/app/services/llm_client.py  # Client wrapper
 ```
 
 ### Key Steps
-1. Configure vLLM in docker-compose
-2. Download Llama 3.1-8B model
-3. Start vLLM service
-4. Test OpenAI-compatible API
-5. Implement streaming client
-6. Test text generation
-7. Test streaming generation
+1. Install Ollama and pull model: `ollama pull llama3.1:8b`
+2. Start Ollama: `ollama serve`
+3. Test Ollama API
+4. Implement backend LLM client wrapper (OpenAI-compatible)
+5. Test non-streaming generation
+6. Test streaming generation
 
 ### Testing
 ```bash
-# Test vLLM directly
-curl http://localhost:8003/v1/models
+# Test Ollama directly
+curl http://localhost:11434/v1/models
 
-curl http://localhost:8003/v1/chat/completions \
+curl http://localhost:11434/v1/chat/completions \
   -H "Content-Type: application/json" \
-  -d '{"model": "meta-llama/Meta-Llama-3.1-8B-Instruct", "messages": [{"role": "user", "content": "Hello"}], "stream": true}'
+  -d '{"model": "llama3.1:8b", "messages": [{"role": "user", "content": "Hello"}], "stream": true}'
 ```
 
 ---
@@ -450,17 +450,17 @@ Day 5: Bug fixes and polish
 
 1. Review this overview
 2. Go back to `INDEX.md` for detailed roadmap
-3. Start with Phase 2: `03-phase-02-database.md` (to be created)
+3. Start with Phase 2: `03-phase-02-database.md`
 4. Work through each phase systematically
 5. Test after each phase
 6. Commit after each phase
 
 ---
 
-**All phases ready for detailed implementation!** 
+**All phases now have detailed implementation guides available.**
 
-When ready to start Phase 2, the detailed execution document will be created with:
-- Step-by-step code snippets
+Each numbered phase document includes:
+- Step-by-step execution guidance
 - Testing commands
 - Verification checklist
 - Common issues and solutions

@@ -28,10 +28,18 @@ docs/implementation-plan/
 └── EXECUTION-GUIDE.md            # This file
 ```
 
-**Additional detailed phase documents will be created as needed:**
+**Detailed phase documents available in this directory:**
 - `03-phase-02-database.md`
 - `04-phase-03-fastapi-core.md`
-- ... and so on
+- `05-phase-04-document-upload.md`
+- `06-phase-05-pdf-processing.md`
+- `07-phase-06-embedding-service.md`
+- `08-phase-07-vector-storage.md`
+- `09-phase-08-llm-service.md`
+- `10-phase-09-retrieval.md`
+- `11-phase-10-chat-service.md`
+- `12-phase-11-workers.md`
+- `13-phase-12-frontend.md`
 
 ---
 
@@ -347,6 +355,8 @@ python
 - [ ] Logs show expected messages
 - [ ] No errors in console/logs
 - [ ] Services communicate correctly
+
+**Recommended testing source:** keep small sample documents, reusable queries, and expected manual-check notes in `docs/test-data/`. See `docs/test-data/README.md`.
 
 ---
 

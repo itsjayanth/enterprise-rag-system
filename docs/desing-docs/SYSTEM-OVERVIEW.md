@@ -142,6 +142,8 @@ Model Serving
 Tech: vLLM, sentence-transformers, FastAPI
 ```
 
+**Retrieval consistency rule:** the same embedding model must be used when generating document chunk vectors and when embedding user queries for search. In this system, both use `BAAI/bge-m3`; the query side may add the recommended BGE retrieval prefix, but it still uses the same model.
+
 ### Layer 5: Processing Layer
 
 ```
@@ -286,7 +288,7 @@ Frontend: Show citations
 | **OpenAI API** | Expensive ($$$), not self-hosted |
 | **Elasticsearch** | Overkill for vector search, Pinecone simpler |
 | **MongoDB** | PostgreSQL better for relational + JSONB |
-| **Ollama** | Not production-grade, use vLLM |
+| **Ollama** | **Use for local Mac dev — runs on CPU/MPS, no GPU required** |
 
 ---
 

@@ -1,0 +1,27 @@
+[
+  {
+    "name": "pto-chat",
+    "payload": {
+      "query": "Summarize the PTO rule in one sentence.",
+      "session_id": null,
+      "document_ids": []
+    }
+  },
+  {
+    "name": "incident-channel-chat",
+    "payload": {
+      "query": "Which Slack channel should be used during an active incident?",
+      "session_id": null,
+      "document_ids": []
+    }
+  },
+  {
+    "name": "unsupported-question-chat",
+    "payload": {
+      "query": "What is the company stock vesting schedule?",
+      "session_id": null,
+      "document_ids": []
+    }
+  }
+]
+

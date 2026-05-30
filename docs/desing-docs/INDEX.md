@@ -21,6 +21,7 @@ Welcome to the **enterprise-rag-system** design documentation. This comprehensiv
 |----------|-------------|-------|
 | **[backend/architecture.md](backend/architecture.md)** | Microservices architecture, service breakdown, database schemas, API design | 📄📄📄 |
 | **[backend/data-flow.md](backend/data-flow.md)** | Document ingestion flow, RAG pipeline, streaming patterns, caching | 📄📄 |
+| **[backend/CHUNKING-STRATEGIES.md](backend/CHUNKING-STRATEGIES.md)** | Text chunking strategies, metadata preservation, PII masking, validation | 📄📄📄 |
 | **[backend/deployment.md](backend/deployment.md)** | Docker containerization, Kubernetes manifests, CI/CD pipelines | 📄📄📄 |
 | **[backend/observability.md](backend/observability.md)** | Metrics, logging, tracing, alerting, GenAI observability | 📄📄 |
 | **[backend/project-structure.md](backend/project-structure.md)** | Folder organization, code structure, configuration management | 📄📄 |
@@ -41,10 +42,10 @@ Welcome to the **enterprise-rag-system** design documentation. This comprehensiv
 
 ## 📊 Documentation Statistics
 
-- **Total Documents:** 9
-- **Total Words:** ~25,000+
-- **Total Code Examples:** 100+
-- **Diagrams:** 15+
+- **Total Documents:** 10
+- **Total Words:** ~30,000+
+- **Total Code Examples:** 120+
+- **Diagrams:** 20+
 - **Coverage:** Complete (100%)
 
 ---
@@ -57,10 +58,11 @@ Welcome to the **enterprise-rag-system** design documentation. This comprehensiv
 1. [SYSTEM-OVERVIEW.md](SYSTEM-OVERVIEW.md) - Understand the big picture
 2. [backend/architecture.md](backend/architecture.md) - Microservices design
 3. [backend/data-flow.md](backend/data-flow.md) - How data flows
-4. [GEN-AI/tech-stack.md](GEN-AI/tech-stack.md) - AI/ML components
-5. [backend/project-structure.md](backend/project-structure.md) - Code organization
-6. [backend/deployment.md](backend/deployment.md) - How to deploy
-7. [backend/observability.md](backend/observability.md) - Monitoring & debugging
+4. [backend/CHUNKING-STRATEGIES.md](backend/CHUNKING-STRATEGIES.md) - Document chunking & PII masking
+5. [GEN-AI/tech-stack.md](GEN-AI/tech-stack.md) - AI/ML components
+6. [backend/project-structure.md](backend/project-structure.md) - Code organization
+7. [backend/deployment.md](backend/deployment.md) - How to deploy
+8. [backend/observability.md](backend/observability.md) - Monitoring & debugging
 
 **Time:** 2-3 hours
 
@@ -90,8 +92,9 @@ Welcome to the **enterprise-rag-system** design documentation. This comprehensiv
 **Recommended Order:**
 1. [GEN-AI/tech-stack.md](GEN-AI/tech-stack.md) - Model selection & serving
 2. [backend/data-flow.md](backend/data-flow.md) - RAG pipeline details
-3. [ARCHITECTURE-DIAGRAMS.md](ARCHITECTURE-DIAGRAMS.md) - RAG flow diagrams
-4. [backend/observability.md](backend/observability.md) - GenAI metrics
+3. [backend/CHUNKING-STRATEGIES.md](backend/CHUNKING-STRATEGIES.md) - Text chunking techniques
+4. [ARCHITECTURE-DIAGRAMS.md](ARCHITECTURE-DIAGRAMS.md) - RAG flow diagrams
+5. [backend/observability.md](backend/observability.md) - GenAI metrics
 
 **Time:** 1-2 hours
 
@@ -129,6 +132,9 @@ Welcome to the **enterprise-rag-system** design documentation. This comprehensiv
 | **API Endpoints** | [backend/architecture.md](backend/architecture.md) | Section 2.1 |
 | **RAG Pipeline Flow** | [backend/data-flow.md](backend/data-flow.md) | Section 2 |
 | **Document Processing** | [backend/data-flow.md](backend/data-flow.md) | Section 1 |
+| **Text Chunking Strategies** | [backend/CHUNKING-STRATEGIES.md](backend/CHUNKING-STRATEGIES.md) | All sections |
+| **Metadata Preservation** | [backend/CHUNKING-STRATEGIES.md](backend/CHUNKING-STRATEGIES.md) | Section 4 |
+| **PII Masking** | [backend/CHUNKING-STRATEGIES.md](backend/CHUNKING-STRATEGIES.md) | Section 5 |
 | **Streaming Implementation** | [backend/data-flow.md](backend/data-flow.md) | Section 3 |
 | **Docker Setup** | [backend/deployment.md](backend/deployment.md) | Section 2-3 |
 | **Kubernetes Manifests** | [backend/deployment.md](backend/deployment.md) | Section 4 |
@@ -283,9 +289,9 @@ When contributing, please:
 
 ---
 
-**Last Updated:** 2026-05-25  
-**Version:** 1.0  
-**Total Documentation Size:** 25,000+ words  
-**Code Examples:** 100+  
-**Diagrams:** 15+
+**Last Updated:** 2026-05-27  
+**Version:** 1.1  
+**Total Documentation Size:** 30,000+ words  
+**Code Examples:** 120+  
+**Diagrams:** 20+
 

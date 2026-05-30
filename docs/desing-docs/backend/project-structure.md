@@ -32,6 +32,8 @@ enterprise-rag-system/
 │   ├── api/                      # API documentation
 │   │   ├── openapi.yaml
 │   │   └── postman-collection.json
+│   ├── test-data/                # Small committed development datasets and expected outputs
+│   │   └── README.md
 │   └── runbooks/                 # Operational runbooks
 │       ├── deployment.md
 │       ├── incident-response.md

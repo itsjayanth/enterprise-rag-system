@@ -176,7 +176,49 @@ enterprise-rag-system/
 
 ```bash
 git clone https://github.com/yourusername/enterprise-rag-system.git
-cd enterprise-rag-system
+# Enterprise RAG System
+
+Production-grade RAG platform with document upload and chat capabilities.
+
+## 🤖 AI Models (3 Total)
+
+| Model | Type | Size | Purpose |
+|-------|------|------|---------|
+| **BGE-M3** | Embeddings | 568M | Convert text to vectors |
+| **BGE-reranker-v2-m3** | Reranker | 568M | Re-rank search results |
+| **Llama 3.1-8B** | LLM | 8B | Generate answers |
+
+## 💻 Development Setup (No Docker for Models!)
+
+```bash
+# Install Ollama (for LLM)
+brew install ollama
+ollama serve
+ollama pull llama3.1:8b
+
+# Install Python dependencies (for embeddings & reranker)
+pip install sentence-transformers torch
+
+# Start infrastructure only
+docker-compose -f docker-compose.dev.yml up -d
+
+# Run backend (models load automatically)
+cd backend
+uvicorn app.main:app --reload
+```
+
+**Models load directly in Python - NO Docker needed for development!**
+
+## 🚀 Quick Start
+
+1. Read: `docs/implementation-plan/00-MASTER-PLAN.md`
+2. Setup: `docs/implementation-plan/01-environment-setup.md`
+3. Build: Follow phases 1-12
+
+## 📚 Documentation
+
+- **Design:** `docs/desing-docs/`
+- **Implementation:** `docs/implementation-plan/`
 ```
 
 ### 2. Setup Environment

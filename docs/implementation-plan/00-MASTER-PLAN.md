@@ -79,6 +79,71 @@ Frontend (Phase 12)
 
 ---
 
+## 🚀 Development Setup (Quick Start)
+
+### Prerequisites
+
+```bash
+# Install required software (local Mac)
+brew install python@3.11 node@20 ollama docker
+
+# Pull the LLM model — ~4.7 GB download, runs on CPU/Apple MPS
+ollama pull llama3.1:8b
+
+# Setup Python environment
+python3.11 -m venv venv
+source venv/bin/activate
+cd backend && pip install -r requirements.txt
+```
+
+### Model Setup
+
+```bash
+# Models used in this project:
+# - Phase 6: BAAI/bge-m3  (embedding service — runs on CPU/MPS in Docker)
+# - Phase 9: BAAI/bge-reranker-v2-m3  (reranker service — runs on CPU in Docker)
+# - Phase 8: llama3.1:8b via Ollama  (LLM — runs on host Mac CPU/MPS, NOT in Docker)
+#
+# Note: vLLM is NOT used for local development. It requires a CUDA GPU.
+# Ollama is the local LLM backend. Switch to vLLM later when a GPU is available.
+#
+# Embedding and reranker models auto-download from HuggingFace on first startup.
+# Pull the Ollama model manually:
+ollama pull llama3.1:8b
+```
+
+### Run Development Stack
+
+```bash
+# 1. Start Ollama (LLM — host process, not Docker)
+ollama serve
+
+# 2. Start infrastructure (Postgres + Redis)
+make dev-infra
+
+# 3. Configure environment
+cp .env.example .env
+# Edit .env and add your Pinecone API key
+# LLM_SERVICE_URL should be http://localhost:11434/v1 (or host.docker.internal when inside Docker)
+
+# 4. Run the backend locally or via Docker Compose
+cd backend
+uvicorn app.main:app --reload --port 8000
+
+# 5. Run the frontend
+cd ../frontend
+npm install
+npm run dev
+
+# 6. Start ML services when you reach their phases (CPU, no GPU needed)
+cd ..
+docker compose up -d embedding-service reranker-service
+```
+
+**Useful shortcut:** see `docs/implementation-plan/DEV-SETUP-GUIDE.md` for the recommended daily development workflow.
+
+---
+
 ## 📂 Final Project Structure
 
 ```
@@ -357,12 +422,19 @@ RERANKER_MODEL_NAME=BAAI/bge-reranker-v2-m3
 LLM_MODEL_NAME=meta-llama/Meta-Llama-3.1-8B-Instruct
 MODEL_CACHE_DIR=/data/models
 
+# IMPORTANT:
+# Use the same EMBEDDING_MODEL_NAME for both:
+# 1. document chunk embeddings stored in Pinecone
+# 2. user query embeddings used at retrieval time
+# Query text may add the BGE retrieval instruction prefix,
+# but the underlying embedding model must remain the same.
+
 # ===================================
 # ML SERVICE URLS
 # ===================================
 EMBEDDING_SERVICE_URL=http://embedding-service:8001
 RERANKER_SERVICE_URL=http://reranker-service:8002
-LLM_SERVICE_URL=http://llm-service:8000
+LLM_SERVICE_URL=http://localhost:11434/v1   # Ollama (local Mac dev)
 
 # ===================================
 # RAG CONFIGURATION

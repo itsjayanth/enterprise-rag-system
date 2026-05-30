@@ -1,5 +1,14 @@
 # Deployment Architecture - Enterprise RAG System
 
+> **⚠️ Local Mac Dev Note:** This document shows the full deployment architecture including GPU/Kubernetes targets.
+> For **current local Mac development**:
+> - LLM uses **Ollama** running on the Mac host (no GPU, no Docker for LLM)
+> - Embedding and Reranker services run on **CPU in Docker** (no nvidia/CUDA)
+> - Pinecone is the only cloud service
+> - vLLM and GPU sections are the **future GPU upgrade path**
+>
+> See `docs/implementation-plan/DEV-SETUP-GUIDE.md` for the daily local workflow.
+
 ## Executive Summary
 
 This document defines the **deployment architecture** for the enterprise RAG platform, covering Docker containerization, Kubernetes orchestration, local development setup, and production best practices.
@@ -372,7 +381,8 @@ services:
       - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/enterprise_rag
       - REDIS_URL=redis://redis:6379/0
       - RETRIEVAL_SERVICE_URL=http://retrieval-service:8000
-      - LLM_SERVICE_URL=http://llm-service:8000
+      # Local Mac: use host.docker.internal; production: use llm-service:8000
+      - LLM_SERVICE_URL=http://host.docker.internal:11434/v1
     depends_on:
       - postgres
       - redis

@@ -1,0 +1,51 @@
+[
+  {
+    "id": "hp-001",
+    "query": "How many business days in advance should PTO be requested?",
+    "preferred_documents": ["employee-handbook-excerpt.txt"],
+    "expected_keywords": ["10 business days", "PTO", "planned"]
+  },
+  {
+    "id": "hp-002",
+    "query": "Which days are hybrid employees allowed to work remotely?",
+    "preferred_documents": ["employee-handbook-excerpt.txt"],
+    "expected_keywords": ["Tuesday", "Wednesday", "Thursday", "remote"]
+  },
+  {
+    "id": "hp-003",
+    "query": "What is the approval rule for expenses above 500 dollars?",
+    "preferred_documents": ["employee-handbook-excerpt.txt"],
+    "expected_keywords": ["$500", "finance approval", "before purchase"]
+  },
+  {
+    "id": "hp-004",
+    "query": "How quickly must a Severity 1 incident be acknowledged?",
+    "preferred_documents": ["incident-response-playbook.txt"],
+    "expected_keywords": ["15 minutes", "Severity 1", "acknowledged"]
+  },
+  {
+    "id": "hp-005",
+    "query": "Which Slack channel is used during active incidents?",
+    "preferred_documents": ["incident-response-playbook.txt"],
+    "expected_keywords": ["#incident-war-room", "Slack", "coordination"]
+  },
+  {
+    "id": "hp-006",
+    "query": "What chunk size and overlap does the onboarding guide recommend?",
+    "preferred_documents": ["rag-onboarding-guide.pdf"],
+    "expected_keywords": ["512", "50", "overlap", "chunking"]
+  },
+  {
+    "id": "hp-007",
+    "query": "Which embedding model should be used for both document chunks and queries?",
+    "preferred_documents": ["rag-onboarding-guide.pdf", "architecture-overview.pdf"],
+    "expected_keywords": ["BAAI/bge-m3", "same", "queries", "document"]
+  },
+  {
+    "id": "hp-008",
+    "query": "How long are audit logs retained?",
+    "preferred_documents": ["compliance-faq.pdf"],
+    "expected_keywords": ["365 days", "audit logs", "retained"]
+  }
+]
+

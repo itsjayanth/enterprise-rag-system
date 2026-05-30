@@ -37,6 +37,37 @@ This document outlines the GenAI technology stack for a production-grade RAG sys
 - Strong performance on technical/enterprise documents
 - No fine-tuning required for most use cases
 
+### **Critical Retrieval Rule: Use the Same Embedding Model for Documents and Queries**
+
+For vector retrieval quality, the system must use the **same embedding model family and configuration** for both:
+
+- document chunks stored in Pinecone
+- user queries sent to similarity search
+
+For this project, that means:
+
+- **Document embeddings:** `BAAI/bge-m3`
+- **Query embeddings:** `BAAI/bge-m3`
+
+The query may use an instruction prefix such as:
+
+```text
+Represent this query for retrieving relevant documents:
+```
+
+That prefix changes the **input text format**, not the model choice. The vector space still remains aligned because both document and query embeddings are produced by the same model.
+
+**Do not mix embedding models in one index.**
+
+For example, avoid this pattern:
+
+- documents embedded with `BAAI/bge-m3`
+- queries embedded with `all-MiniLM-L6-v2`
+
+Even if the dimensions happen to match, retrieval quality usually drops because the embeddings are no longer comparable in the same semantic space.
+
+If the embedding model is changed later, existing documents should be re-embedded and the vector index refreshed.
+
 **Alternative Options:**
 
 | Model | Pros | Cons | Use Case |
@@ -45,27 +76,37 @@ This document outlines the GenAI technology stack for a production-grade RAG sys
 | **intfloat/e5-mistral-7b-instruct** | Instruction-tuned, excellent quality | Large (7B params), slower | Quality over speed |
 | **Alibaba-NLP/gte-large-en-v1.5** | Excellent English performance | English-only | English-only corpus |
 
-**Deployment Strategy:**
+**Deployment Strategy — Local Mac (CPU/MPS):**
 ```python
 # Load with sentence-transformers
+import torch
 from sentence_transformers import SentenceTransformer
 
-model = SentenceTransformer('BAAI/bge-m3')
-model.to('cuda')  # GPU acceleration
+# Device selection: MPS on Apple Silicon, CPU otherwise
+# CUDA is reserved for future GPU upgrade
+if torch.backends.mps.is_available():
+    device = "mps"
+else:
+    device = "cpu"
 
-# Batch encoding for production
+model = SentenceTransformer('BAAI/bge-m3', device=device)
+
+# Batch encoding — use smaller batch size on CPU
+batch_size = 32 if device == "mps" else 8
 embeddings = model.encode(
     texts,
-    batch_size=32,
+    batch_size=batch_size,
     show_progress_bar=False,
     normalize_embeddings=True  # Important for cosine similarity
 )
 ```
 
-**Resource Requirements:**
-- **GPU:** 4GB VRAM minimum (T4, L4, A10 recommended)
-- **CPU fallback:** Possible but 10-20x slower
-- **Batch size:** 32-64 for optimal throughput
+**Resource Requirements (Local Mac):**
+- **GPU:** Not required
+- **Apple Silicon (MPS):** ~15-30 tokens/sec — recommended
+- **Intel Mac (CPU only):** ~2-5 sec per batch of 8 — slower but functional
+- **RAM:** ~2 GB for the BGE-M3 model
+- **Storage:** ~1.2 GB for model weights (cached in `data/models`)
 
 ---
 
@@ -241,7 +282,7 @@ spec:
           - --model=meta-llama/Meta-Llama-3.1-8B-Instruct
           - --tensor-parallel-size=1
           - --max-model-len=8192
-          - --dtype=float16
+          - --dtype=float16   # GPU only — requires CUDA
         resources:
           limits:
             nvidia.com/gpu: 1
@@ -272,7 +313,7 @@ response = client.chat.completions.create(
 | Server | Pros | Cons | Use Case |
 |--------|------|------|----------|
 | **Text Generation Inference (TGI)** | Hugging Face ecosystem, good K8s support | Slower than vLLM (1.5-2x) | HF-first organizations |
-| **Ollama** | Easiest setup, good for dev | Not production-grade, no K8s patterns | Local development only |
+| **Ollama** | **Easiest setup, CPU/MPS native on Mac, OpenAI-compatible API** | Not production-grade | **Local Mac development (this project)** |
 | **OpenLLM** | BentoML integration, good for MLOps | Smaller community | BentoML users |
 | **Ray Serve** | Best for complex serving graphs | Heavyweight, complex setup | Multi-model pipelines |
 
@@ -284,7 +325,7 @@ response = client.chat.completions.create(
 | TGI | 25-35 | 250 | 70-80% | 18GB |
 | Transformers | 5-8 | 600 | 40-50% | 16GB |
 
-**Recommendation:** Use **vLLM** for production, **Ollama** for local development.
+**Recommendation:** Use **Ollama** for local Mac development. Use **vLLM** when a GPU is available (future).
 
 ---
 
@@ -567,13 +608,27 @@ initContainers:
 
 ## 9. Resource Requirements Summary
 
-### **Development Environment**
+### **Local Mac Development (this project — no GPU)**
+
+| Service | CPU | RAM | GPU | Storage | Notes |
+|---------|-----|-----|-----|---------|-------|
+| Embeddings (Docker) | 2 cores | 3GB | ❌ None | 1.2GB | CPU/MPS via sentence-transformers |
+| Reranker (Docker) | 1 core | 2GB | ❌ None | 1GB | CPU only |
+| LLM (Ollama host) | 4-8 cores | 6GB | ❌ None (MPS on Apple Silicon) | 4.7GB | llama3.1:8b via Ollama |
+| Postgres + Redis | 1 core | 1GB | ❌ None | 1GB | Docker |
+| Backend | 1 core | 1GB | ❌ None | — | FastAPI |
+| **Total** | **~10 cores** | **~14GB** | **None required** | **~9GB** | Apple Silicon recommended |
+
+> **Apple Silicon Macs** (M1/M2/M3/M4) use Apple MPS for LLM inference — significantly faster.
+> **Intel Macs** fall back to CPU — functional but slower, especially for LLM.
+
+### **Future GPU Environment (upgrade path)**
 
 | Service | CPU | RAM | GPU | Storage |
 |---------|-----|-----|-----|---------|
-| Embeddings | 2 cores | 4GB | 4GB VRAM | 2GB |
+| Embeddings | 2 cores | 4GB | 4GB VRAM (T4) | 2GB |
 | Reranker | 1 core | 2GB | 2GB VRAM | 1GB |
-| LLM | 4 cores | 8GB | 16GB VRAM | 16GB |
+| LLM (vLLM) | 4 cores | 8GB | 16GB VRAM (A10G) | 16GB |
 | **Total** | **7 cores** | **14GB** | **1x A10G (24GB)** | **20GB** |
 
 ### **Production Environment (Single Replica)**
@@ -587,7 +642,9 @@ initContainers:
 
 ### **Scaling Characteristics**
 
-- **Embeddings:** Horizontally scalable, CPU/GPU hybrid
+- **Embeddings:** CPU/MPS (local Mac), no GPU required now
+- **Reranker:** CPU-scalable, no GPU required
+- **LLM:** Ollama on Mac host (CPU/MPS), upgrade to vLLM when GPU available
 - **LLM:** GPU-bound, scale with more replicas
 - **Reranker:** CPU-scalable, lower priority
 
@@ -596,12 +653,12 @@ initContainers:
 ## 10. Cost Optimization Strategies
 
 ### **Development:**
-- Use Ollama for LLM (CPU-only)
-- Use MiniLM for embeddings (CPU-friendly)
+- Use a smaller local LLM if needed for debugging
+- If you switch to a lighter embedding model for local development, use that same model for **both** documents and queries, and do not mix those vectors with `BAAI/bge-m3` vectors in the same index
 - Single instance of each service
 
 ### **Production:**
-- 4-bit quantization for LLM (5GB VRAM)
+- 4-bit quantization for LLM (5GB VRAM) — applicable when GPU is available, not needed for local Mac dev
 - Cache embeddings in Redis (TTL: 1 hour)
 - Batch document processing overnight
 - Use spot instances for workers

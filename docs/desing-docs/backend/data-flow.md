@@ -321,6 +321,8 @@ def process_document_task(self, document_id: str):
 
 #### **Stage 1: Query Embedding**
 
+**Important:** query embeddings must be generated with the **same embedding model** used to create the stored document chunk vectors. In this design, both use `BAAI/bge-m3`. The query gets an instruction prefix, but it is still encoded by the same model.
+
 ```python
 async def embed_query(query: str) -> List[float]:
     """Embed query with instruction prefix for better retrieval"""
