@@ -27,7 +27,8 @@ class RetrievalService:
         if not cleaned_query:
             raise ValueError("query must not be empty")
 
-        vector_top_k = top_k or settings.retrieval_top_k
+        final_top_k = top_k or settings.rerank_top_k
+        vector_top_k = max(settings.retrieval_top_k, final_top_k)
 
         embedding_started = time.perf_counter()
         query_embedding = self._embed_query(cleaned_query)
@@ -42,11 +43,15 @@ class RetrievalService:
         vector_seconds = time.perf_counter() - vector_started
 
         rerank_started = time.perf_counter()
-        reranked = self._rerank(cleaned_query, candidates)
+        reranked = self._rerank(
+            query=cleaned_query,
+            candidates=candidates,
+            top_k=final_top_k,
+        )
         rerank_seconds = time.perf_counter() - rerank_started
 
         context_started = time.perf_counter()
-        context, final_chunks = self._build_context(reranked)
+        context, final_chunks = self._build_context(reranked, max_chunks=final_top_k)
         context_seconds = time.perf_counter() - context_started
 
         timings = {
@@ -84,7 +89,7 @@ class RetrievalService:
         return embedding
 
     @staticmethod
-    def _rerank(query: str, candidates: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    def _rerank(query: str, candidates: list[dict[str, Any]], top_k: int) -> list[dict[str, Any]]:
         if not candidates:
             return []
 
@@ -94,7 +99,7 @@ class RetrievalService:
             json={
                 "query": query,
                 "documents": documents,
-                "top_k": min(settings.rerank_top_k, len(documents)),
+                "top_k": min(top_k, len(documents)),
             },
             timeout=60.0,
         )
@@ -121,7 +126,7 @@ class RetrievalService:
     def _estimate_token_count(text: str) -> int:
         return max(1, len(text) // 4)
 
-    def _build_context(self, chunks: list[dict[str, Any]]) -> tuple[str, list[dict[str, Any]]]:
+    def _build_context(self, chunks: list[dict[str, Any]], max_chunks: int) -> tuple[str, list[dict[str, Any]]]:
         lines: list[str] = []
         selected_chunks: list[dict[str, Any]] = []
         used_tokens = 0
@@ -143,6 +148,8 @@ class RetrievalService:
             used_tokens += block_tokens
             lines.append(block)
             selected_chunks.append(chunk)
+            if len(selected_chunks) >= max_chunks:
+                break
 
         return "\n\n".join(lines), selected_chunks
 
