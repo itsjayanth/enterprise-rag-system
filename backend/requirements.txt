@@ -14,4 +14,5 @@ pinecone-client==3.2.2
 structlog==24.2.0
 pypdfium2==4.30.0
 langchain-text-splitters==0.2.2
+openai>=1.30.0
 pytest==8.2.2
