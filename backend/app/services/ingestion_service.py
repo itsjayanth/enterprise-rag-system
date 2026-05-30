@@ -5,12 +5,15 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
+import httpx
 import structlog
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from ..models.chunk import Chunk
 from ..models.document import Document
+from ..config import settings
+from .vector_service import ChunkVectorPayload, VectorService
 from ..utils.chunking import ChunkPayload, chunk_pages
 from ..utils.pdf_parser import parse_document
 
@@ -37,9 +40,15 @@ class IngestionService:
         try:
             chunks = self.parse_and_chunk(document)
             chunk_count = self.persist_chunks(document.id, chunks)
+            document.status = "chunked"
+            self.db.commit()
+            self.db.refresh(document)
+
+            self.embed_and_upsert_chunks(document)
+
             document.total_pages = max((chunk.page_number or 0) for chunk in chunks) if chunks else 0
             document.total_chunks = chunk_count
-            document.status = "chunked"
+            document.status = "completed"
             document.error_message = None
             document.processed_at = datetime.now(timezone.utc)
             self.db.commit()
@@ -95,4 +104,62 @@ class IngestionService:
 
         self.db.commit()
         return len(chunks)
+
+    def embed_and_upsert_chunks(self, document: Document) -> int:
+        vector_service = VectorService()
+        chunks = (
+            self.db.query(Chunk)
+            .filter(Chunk.document_id == document.id)
+            .order_by(Chunk.chunk_index.asc())
+            .all()
+        )
+        if not chunks:
+            return 0
+
+        texts = [chunk.content for chunk in chunks]
+        vectors = self._embed_documents(texts)
+        if len(vectors) != len(chunks):
+            raise ValueError("Embedding count does not match chunk count")
+
+        payloads: list[ChunkVectorPayload] = []
+        for chunk, vector in zip(chunks, vectors):
+            vector_id = f"doc:{document.id}:chunk:{chunk.chunk_index}"
+            chunk.embedding_id = vector_id
+            payloads.append(
+                ChunkVectorPayload(
+                    vector_id=vector_id,
+                    values=vector,
+                    metadata={
+                        "document_id": str(document.id),
+                        "chunk_id": str(chunk.id),
+                        "chunk_index": chunk.chunk_index,
+                        "page_number": chunk.page_number,
+                        "content": chunk.content[:1000],
+                        "source_file": document.filename,
+                    },
+                )
+            )
+
+        upserted = vector_service.upsert_chunk_embeddings(payloads)
+        self.db.commit()
+        document.status = "embedded"
+        self.db.commit()
+        self.db.refresh(document)
+        logger.info("document_vectors_embedded", document_id=str(document.id), count=upserted)
+        return upserted
+
+    @staticmethod
+    def _embed_documents(texts: list[str]) -> list[list[float]]:
+        response = httpx.post(
+            f"{settings.embedding_service_url.rstrip('/')}/embed/documents",
+            json={"texts": texts},
+            timeout=120.0,
+        )
+        if response.status_code != 200:
+            raise ValueError(f"Embedding service returned {response.status_code}: {response.text}")
+        payload = response.json()
+        embeddings = payload.get("embeddings", [])
+        if not embeddings:
+            raise ValueError("Embedding service returned no embeddings")
+        return embeddings
 

@@ -37,6 +37,8 @@ class Settings(BaseSettings):
     pinecone_environment: str = ""
     pinecone_index_name: str = "enterprise-rag"
     pinecone_host: str = ""
+    pinecone_index_dimension: int = 1024
+    pinecone_metric: str = "cosine"
 
     upload_dir: str = "./data/uploads"
     model_cache_dir: str = "./data/models"

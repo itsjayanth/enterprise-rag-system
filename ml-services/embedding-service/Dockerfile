@@ -2,8 +2,8 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-COPY req.txt /tmp/req.txt
-RUN pip install --no-cache-dir -r /tmp/req.txt
+COPY ml-services/embedding-service/requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 COPY ml-services/embedding-service/app ./app
 
