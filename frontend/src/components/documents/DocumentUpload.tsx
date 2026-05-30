@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Upload, FileText, AlertCircle, CheckCircle } from "lucide-react";
+import axios from "axios";
 import { uploadDocument, type Document } from "@/lib/api/documents";
 import { cn } from "@/lib/utils";
 
@@ -52,7 +53,11 @@ export default function DocumentUpload({ onUploaded }: Props) {
       if (inputRef.current) inputRef.current.value = "";
       onUploaded(doc);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Upload failed.";
+      let msg = err instanceof Error ? err.message : "Upload failed.";
+      if (axios.isAxiosError(err)) {
+        const detail = err.response?.data?.detail;
+        if (typeof detail === "string") msg = detail;
+      }
       setError(msg);
     } finally {
       setUploading(false);
