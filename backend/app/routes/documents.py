@@ -19,7 +19,28 @@ logger = structlog.get_logger("app.routes.documents")
 def upload_document(file: UploadFile = File(...), db: Session = Depends(get_db)) -> DocumentResponse:
     service = DocumentService(db)
     document = service.upload_document(file)
-    logger.info("document_route_upload_success", document_id=str(document.id), filename=document.filename)
+
+    # Queue background processing — import here to avoid circular import at module load
+    try:
+        from workers.tasks import process_document_task  # noqa: PLC0415
+
+        document.status = "queued"
+        db.commit()
+        db.refresh(document)
+        process_document_task.delay(str(document.id))
+        logger.info(
+            "document_task_queued",
+            document_id=str(document.id),
+            filename=document.filename,
+        )
+    except Exception as exc:
+        # Worker not available (dev/test without Celery): leave as uploaded and log
+        logger.warning(
+            "document_task_queue_failed",
+            document_id=str(document.id),
+            exc=str(exc),
+        )
+
     return DocumentResponse.model_validate(document)
 
 
@@ -41,6 +62,7 @@ def get_document(document_id: uuid.UUID, db: Session = Depends(get_db)) -> Docum
 
 @router.post("/{document_id}/process", response_model=DocumentStatusResponse)
 def process_document(document_id: uuid.UUID, db: Session = Depends(get_db)) -> DocumentStatusResponse:
+    """Synchronous processing — kept for direct CLI/test use."""
     service = IngestionService(db)
     document = service.process_document(document_id)
     logger.info(
@@ -50,5 +72,3 @@ def process_document(document_id: uuid.UUID, db: Session = Depends(get_db)) -> D
         total_chunks=document.total_chunks,
     )
     return DocumentStatusResponse.model_validate(document)
-
-

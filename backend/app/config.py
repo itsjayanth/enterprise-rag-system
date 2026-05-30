@@ -60,7 +60,14 @@ class Settings(BaseSettings):
 
     backend_host: str = "0.0.0.0"
     backend_port: int = 8000
-    cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:3000"])
+    cors_origins: list[str] = Field(
+        default_factory=lambda: [
+            "http://localhost:3002",
+            "http://localhost:3000",
+            "http://127.0.0.1:3002",
+            "http://127.0.0.1:3000",
+        ]
+    )
 
     celery_broker_url: str = "redis://redis:6379/0"
     celery_result_backend: str = "redis://redis:6379/1"
@@ -69,7 +76,12 @@ class Settings(BaseSettings):
     @classmethod
     def parse_cors_origins(cls, value: str | list[str] | None) -> list[str]:
         if value is None:
-            return ["http://localhost:3000"]
+            return [
+                "http://localhost:3002",
+                "http://localhost:3000",
+                "http://127.0.0.1:3002",
+                "http://127.0.0.1:3000",
+            ]
         if isinstance(value, list):
             return value
         return [origin.strip() for origin in value.split(",") if origin.strip()]

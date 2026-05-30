@@ -70,7 +70,7 @@ services:
     depends_on:
       - postgres
       - redis
-    command: celery -A workers.celery_app worker --loglevel=info --concurrency=2
+    command: celery -A workers.celery_app worker --loglevel=info --concurrency=2 -Q document_ingestion
     networks:
       - rag-network
 
