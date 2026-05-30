@@ -60,6 +60,20 @@ backend/
 	├── script.py.mako
 	└── versions/
 		└── 0001_initial_schema.py
+
+repo root/
+└── req.txt
+```
+
+### Dependency file policy (single source of truth)
+
+- Keep all Python dependencies in root-level `req.txt`.
+- Service-level files like `backend/requirements.txt` can only reference it (for example, `-r ../req.txt`) and should not duplicate package pins.
+- For local install during this phase:
+
+```bash
+cd /Users/JMM9/Documents/projects/ai_specifics/enterprise-rag-system
+python -m pip install -r req.txt
 ```
 
 ---
@@ -239,6 +253,13 @@ alembic init migrations
 ```
 
 Then configure:
+
+Before generating or applying migrations, make sure dependencies come from root `req.txt`:
+
+```bash
+cd /Users/JMM9/Documents/projects/ai_specifics/enterprise-rag-system
+python -m pip install -r req.txt
+```
 
 ### `backend/alembic.ini`
 
