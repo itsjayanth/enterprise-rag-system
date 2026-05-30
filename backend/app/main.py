@@ -9,11 +9,11 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
-from app.config import settings
-from app.database import engine
-from app.routes import api_router
-from app.utils.logging_config import configure_logging
-from app.utils.tracing import RequestContextMiddleware
+from .config import settings
+from .database import engine
+from .routes import api_router
+from .utils.logging_config import configure_logging
+from .utils.tracing import RequestContextMiddleware
 
 configure_logging(settings.log_level)
 logger = structlog.get_logger("app.main")

@@ -1,6 +1,6 @@
-from app.models.chat import ChatSession, Message
-from app.models.chunk import Chunk
-from app.models.document import Document
+from .chat import ChatSession, Message
+from .chunk import Chunk
+from .document import Document
 
 __all__ = ["Document", "Chunk", "ChatSession", "Message"]
 

@@ -4,7 +4,17 @@ from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-ROOT_DIR = Path(__file__).resolve().parents[2]
+
+def _detect_root_dir() -> Path:
+    current = Path(__file__).resolve()
+    candidates = [*current.parents, Path.cwd().resolve()]
+    for candidate in candidates:
+        if (candidate / "req.txt").exists() or (candidate / "docker-compose.yml").exists():
+            return candidate
+    return current.parents[1]
+
+
+ROOT_DIR = _detect_root_dir()
 
 
 class Settings(BaseSettings):
