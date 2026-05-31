@@ -1,555 +1,174 @@
 # Enterprise RAG System
 
-> **Production-grade document-aware RAG platform** with multi-user support, streaming responses, and scalable architecture.
+Enterprise RAG app for uploading PDF/TXT files and chatting with grounded answers.
+Backend is FastAPI + Celery + PostgreSQL + Redis + Pinecone, with local Ollama for LLM generation.
 
-## 🎯 Overview
+## Flow (2 lines)
+1. Upload -> worker parses/chunks -> embedding service creates vectors -> Pinecone stores/searches chunks.
+2. Chat query -> retrieval (embed + search + rerank) -> Ollama streams answer via SSE with sources.
 
-A complete **enterprise RAG (Retrieval Augmented Generation) system** that enables users to upload PDF/TXT documents and chat with them using **free, open-source AI models**. Built with production best practices, microservices architecture, and designed for Kubernetes deployment.
+## Project docs
+- Design docs: `docs/desing-docs/`
+- Implementation phases: `docs/implementation-plan/`
 
-### Key Features
+## Prerequisites
+- Docker + Docker Compose
+- Node.js 20+ (for local frontend)
+- Python 3.11+ (only if running backend outside Docker)
+- Ollama (for local LLM)
+- Pinecone API key + index settings in `.env`
 
-✅ **Document Processing**
-- PDF and TXT upload support
-- Intelligent chunking with metadata preservation
-- Page number tracking and citation support
-- Async background processing with Celery
-
-✅ **Advanced RAG Pipeline**
-- Hybrid retrieval (vector + reranking)
-- BGE-M3 embeddings (state-of-the-art)
-- Cross-encoder reranking for precision
-- Multi-stage retrieval optimization
-
-✅ **Production LLM Integration**
-- Llama 3.1-8B-Instruct (free, commercial-friendly)
-- vLLM inference server (10-20x faster than naive serving)
-- Streaming responses with SSE
-- Batched inference for efficiency
-
-✅ **Multi-User Architecture**
-- JWT authentication
-- User-isolated data (PostgreSQL + Pinecone filters)
-- Chat session management
-- Rate limiting and security
-
-✅ **Scalability & Observability**
-- Microservices architecture
-- Kubernetes-ready deployments
-- Prometheus metrics + Grafana dashboards
-- Distributed tracing (OpenTelemetry)
-- GenAI-specific observability (LangFuse)
-
----
-
-## 🏗️ Architecture
-
-### High-Level System Design
-
-```
-┌─────────────┐
-│   Frontend  │ Next.js 14 + shadcn/ui + Streaming Chat
-│  (React)    │
-└──────┬──────┘
-       │ HTTPS
-       ▼
-┌─────────────────────────────────────────────┐
-│           API Gateway (FastAPI)              │
-│  • Authentication (JWT)                      │
-│  • Rate Limiting                             │
-│  • Request Routing                           │
-└──────┬──────────────────────────────────────┘
-       │
-   ┌───┴───┬──────────┬──────────┐
-   ▼       ▼          ▼          ▼
-┌────┐  ┌────┐    ┌────┐    ┌────┐
-│User│  │Doc │    │Chat│    │...  │  Microservices
-│Svc │  │Svc │    │Svc │    │     │
-└────┘  └────┘    └────┘    └────┘
-   │       │         │          │
-   └───┬───┴────┬────┴──────────┘
-       │        │
-       ▼        ▼
-┌──────────────────────────────────────────┐
-│        Processing Layer                  │
-│  ┌──────────┐  ┌──────────┐  ┌────────┐ │
-│  │Ingestion │  │Retrieval │  │Worker  │ │
-│  │Service   │  │Service   │  │(Celery)│ │
-│  └──────────┘  └──────────┘  └────────┘ │
-└──────────────────────────────────────────┘
-       │        │        │
-   ┌───┴────┬───┴────┬───┴───┐
-   ▼        ▼        ▼       ▼
-┌─────┐ ┌───────┐ ┌─────┐ ┌─────┐
-│BGE  │ │LLM    │ │Re   │ │Pine │  ML & Data Layer
-│M3   │ │(vLLM) │ │rank │ │cone │
-└─────┘ └───────┘ └─────┘ └─────┘
-   GPU      GPU      GPU    Vector DB
-
-┌──────────────────────────────────────────┐
-│         Data Storage                     │
-│  PostgreSQL  │  Redis  │  File Storage  │
-└──────────────────────────────────────────┘
-```
-
-### Tech Stack
-
-| Layer | Technology | Purpose |
-|-------|-----------|---------|
-| **Frontend** | Next.js 14, shadcn/ui, TailwindCSS | Modern React with streaming UI |
-| **API Gateway** | FastAPI | Authentication, routing, rate limiting |
-| **Services** | Python, FastAPI | Microservices architecture |
-| **LLM** | Llama 3.1-8B-Instruct | Document Q&A (free, 128K context) |
-| **Embeddings** | BGE-M3 | Best MTEB performance (1024-dim) |
-| **Reranker** | BGE-reranker-v2-m3 | Cross-encoder for precision |
-| **Inference** | vLLM | Production LLM serving (10-20x faster) |
-| **Vector DB** | Pinecone | Similarity search at scale |
-| **Database** | PostgreSQL 16 | Relational data |
-| **Cache** | Redis 7 | Celery broker + caching |
-| **Queue** | Celery | Async task processing |
-| **Storage** | Local filesystem | Document uploads (K8s PVC) |
-| **Observability** | Prometheus, Grafana, LangFuse | Metrics, dashboards, tracing |
-| **Deployment** | Docker, Kubernetes | Containerization & orchestration |
-
----
-
-## 📁 Project Structure
-
-```
-enterprise-rag-system/
-├── docs/                         # Complete design documentation
-│   └── desing-docs/
-│       ├── backend/              # Backend architecture docs
-│       │   ├── architecture.md
-│       │   ├── data-flow.md
-│       │   ├── deployment.md
-│       │   ├── observability.md
-│       │   └── project-structure.md
-│       ├── GEN-AI/               # AI/ML stack documentation
-│       │   └── tech-stack.md
-│       └── UI/                   # Frontend documentation
-│           └── frontend-stack.md
-│
-├── services/                     # Microservices (Python)
-│   ├── shared/                   # Shared libraries
-│   ├── api-gateway/              # API Gateway
-│   ├── user-service/             # User management
-│   ├── document-service/         # Document uploads
-│   ├── ingestion-service/        # PDF/TXT processing
-│   ├── embedding-service/        # BGE-M3 embeddings
-│   ├── reranker-service/         # Cross-encoder reranking
-│   ├── retrieval-service/        # RAG orchestration
-│   ├── chat-service/             # Streaming chat
-│   └── worker-service/           # Celery workers
-│
-├── frontend/                     # Next.js 14 frontend
-│   ├── src/
-│   │   ├── app/                  # App Router pages
-│   │   ├── components/           # React components
-│   │   ├── lib/                  # API clients, stores, hooks
-│   │   └── types/                # TypeScript types
-│   └── Dockerfile
-│
-├── k8s/                          # Kubernetes manifests
-│   ├── deployments/              # Service deployments
-│   ├── statefulsets/             # Postgres, Redis
-│   ├── services/                 # K8s services
-│   ├── ingress/                  # Ingress rules
-│   └── monitoring/               # Prometheus, Grafana
-│
-├── docker-compose.yml            # Local development
-└── Makefile                      # Common commands
-```
-
----
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- **Docker** & **Docker Compose**
-- **Python 3.11+**
-- **Node.js 20+**
-- **NVIDIA GPU** (optional for local dev, required for production)
-- **Pinecone account** (free tier available)
-
-### 1. Clone Repository
+## Environment
+Create root env file:
 
 ```bash
-git clone https://github.com/yourusername/enterprise-rag-system.git
-# Enterprise RAG System
+cp .env.example .env
+```
 
-Production-grade RAG platform with document upload and chat capabilities.
+Minimum values to verify in `.env`:
+- `PINECONE_API_KEY`
+- `PINECONE_INDEX_NAME`
+- `PINECONE_HOST`
+- `LLM_SERVICE_URL`
+- `NEXT_PUBLIC_API_URL`
 
-## 🤖 AI Models (3 Total)
-
-| Model | Type | Size | Purpose |
-|-------|------|------|---------|
-| **BGE-M3** | Embeddings | 568M | Convert text to vectors |
-| **BGE-reranker-v2-m3** | Reranker | 568M | Re-rank search results |
-| **Llama 3.1-8B** | LLM | 8B | Generate answers |
-
-## 💻 Development Setup (No Docker for Models!)
+## Option A: Docker-first (recommended)
+Start all services (backend, worker, db, redis, ml services, frontend):
 
 ```bash
-# Install Ollama (for LLM)
-brew install ollama
+cd /Users/JMM9/Documents/projects/ai_specifics/enterprise-rag-system
+docker compose up -d
+```
+
+Run migrations:
+
+```bash
+docker compose exec backend alembic -c /app/alembic.ini upgrade head
+```
+
+Start Ollama on host (outside Docker):
+
+```bash
 ollama serve
 ollama pull llama3.1:8b
-
-# Install Python dependencies (for embeddings & reranker)
-pip install sentence-transformers torch
-
-# Start infrastructure only
-docker-compose -f docker-compose.dev.yml up -d
-
-# Run backend (models load automatically)
-cd backend
-uvicorn app.main:app --reload
 ```
 
-**Models load directly in Python - NO Docker needed for development!**
+Access:
+- Frontend: `http://localhost:3000`
+- Backend docs: `http://localhost:8000/docs`
 
-## 🚀 Quick Start
-
-1. Read: `docs/implementation-plan/00-MASTER-PLAN.md`
-2. Setup: `docs/implementation-plan/01-environment-setup.md`
-3. Build: Follow phases 1-12
-
-## 📚 Documentation
-
-- **Design:** `docs/desing-docs/`
-- **Implementation:** `docs/implementation-plan/`
-```
-
-### 2. Setup Environment
+## Option B: Local frontend + Docker backend (common dev mode)
+Start backend side in Docker:
 
 ```bash
-# Copy environment template
-cp .env.example .env
-
-# Edit .env and add:
-# - PINECONE_API_KEY
-# - JWT_SECRET
-# Other variables have sensible defaults
+cd /Users/JMM9/Documents/projects/ai_specifics/enterprise-rag-system
+docker compose up -d postgres redis backend worker embedding-service reranker-service
 ```
 
-### 3. Start Services (Local Development)
+Run frontend locally:
 
 ```bash
-# Using Makefile
-make dev
-
-# Or directly with Docker Compose
-docker-compose up -d
+cd /Users/JMM9/Documents/projects/ai_specifics/enterprise-rag-system/frontend
+npm install
+npm run dev
 ```
 
-This starts:
-- PostgreSQL (port 5432)
-- Redis (port 6379)
-- All backend services
-- Frontend (port 3000)
-- Prometheus (port 9090)
-- Grafana (port 3001)
+If `3000` is busy, Next uses another port (for example `3002` or `3003`).
+Update backend CORS and `NEXT_PUBLIC_API_URL` to match your actual frontend origin.
 
-### 4. Run Database Migrations
+## Option C: Mostly local (advanced)
+You can run backend/frontend locally and keep only infra in Docker, but this needs local Python env setup and matching URLs.
+Use only if you specifically want non-container runtime debugging.
+
+## Model download details
+### 1) LLM model (Ollama)
+Manual one-time pull:
 
 ```bash
-make migrate
+ollama serve
+ollama pull llama3.1:8b
+curl http://localhost:11434/v1/models
 ```
 
-### 5. Download Models (First Time)
+When backend runs in Docker, use host URL in `.env`:
+- `LLM_SERVICE_URL=http://host.docker.internal:11434/v1`
+
+When backend runs locally:
+- `LLM_SERVICE_URL=http://localhost:11434/v1`
+
+### 2) Embedding model (`BAAI/bge-m3`)
+- Downloaded automatically on first embedding-service startup/request.
+- Cache volume is mounted at `./data/models` (via `/data/models` in container).
+- First load can take a few minutes.
+
+Check readiness:
 
 ```bash
-make download-models
+curl http://localhost:8001/health
 ```
 
-This downloads:
-- BGE-M3 embeddings (~2GB)
-- BGE-reranker-v2-m3 (~1GB)
-- Llama 3.1-8B-Instruct (~16GB)
+### 3) Reranker model (`BAAI/bge-reranker-v2-m3`)
+- Downloaded automatically on first reranker-service startup/request.
+- May take several minutes on first load or after rebuilds.
 
-### 6. Access Application
-
-- **Frontend:** http://localhost:3000
-- **API Docs:** http://localhost:8000/docs
-- **Grafana:** http://localhost:3001 (admin/admin)
-- **Prometheus:** http://localhost:9090
-
----
-
-## 📚 Documentation
-
-Comprehensive design documentation is available in `/docs/desing-docs/`:
-
-### Backend
-
-1. **[Architecture](docs/desing-docs/backend/architecture.md)** - Microservices design, service breakdown, database schemas
-2. **[Data Flow](docs/desing-docs/backend/data-flow.md)** - Document ingestion, RAG pipeline, streaming patterns
-3. **[Deployment](docs/desing-docs/backend/deployment.md)** - Docker, Kubernetes, CI/CD
-4. **[Observability](docs/desing-docs/backend/observability.md)** - Metrics, logging, tracing, alerting
-5. **[Project Structure](docs/desing-docs/backend/project-structure.md)** - Folder organization, code structure
-
-### GenAI
-
-6. **[Tech Stack](docs/desing-docs/GEN-AI/tech-stack.md)** - Model selection, inference serving, RAG framework
-
-### Frontend
-
-7. **[Frontend Stack](docs/desing-docs/UI/frontend-stack.md)** - Next.js, streaming UI, state management
-
----
-
-## 🔧 Development
-
-### Available Commands
+Check readiness:
 
 ```bash
-# Start development environment
-make dev
-
-# View logs
-make dev-logs
-
-# Run tests
-make test
-
-# Run linters
-make lint
-
-# Build Docker images
-make build
-
-# Run migrations
-make migrate
-
-# Seed test data
-make seed
-
-# Health check
-make health-check
-
-# Clean up
-make clean
+curl http://localhost:8002/health
+curl -X POST http://localhost:8002/rerank \
+  -H "Content-Type: application/json" \
+  -d '{"query":"what is chunking?","documents":["chunking splits docs","redis is cache"],"top_k":2}'
 ```
 
-### Running Tests
+## Health and smoke checks
+Quick health checks:
 
 ```bash
-# Unit tests
-pytest services/*/tests/ -v
-
-# Integration tests
-make test-integration
-
-# E2E tests
-make test-e2e
-
-# Load tests
-cd tests/load && locust
+curl http://localhost:8000/health
+curl http://localhost:8000/health/deep
+curl http://localhost:8001/health
+curl http://localhost:8002/health
+curl http://localhost:11434/v1/models
 ```
 
----
-
-## 🐳 Docker Compose Services
-
-| Service | Port | Description |
-|---------|------|-------------|
-| frontend | 3000 | Next.js web app |
-| api-gateway | 8000 | API entry point |
-| postgres | 5432 | PostgreSQL database |
-| redis | 6379 | Redis cache & broker |
-| embedding-service | - | BGE-M3 embeddings (internal) |
-| llm-service | 8001 | vLLM inference server |
-| worker | - | Celery worker |
-| prometheus | 9090 | Metrics collection |
-| grafana | 3001 | Dashboards |
-
----
-
-## ☸️ Kubernetes Deployment
-
-### Deploy to Kubernetes
+Project smoke script:
 
 ```bash
-# Apply base configuration
-kubectl apply -f k8s/base/
-
-# Deploy services
-kubectl apply -f k8s/deployments/
-
-# Deploy stateful sets (Postgres, Redis)
-kubectl apply -f k8s/statefulsets/
-
-# Create ingress
-kubectl apply -f k8s/ingress/
+cd /Users/JMM9/Documents/projects/ai_specifics/enterprise-rag-system
+./scripts/smoke_check.sh
 ```
 
-### Scale Services
+## Common issues
+### Upload returns 422 or network error in browser
+- Ensure frontend origin (for example `http://localhost:3002`) is included in backend `cors_origins`.
+- Do not force `multipart/form-data` header manually for `FormData` uploads.
+
+### Frontend starts on a different port
+- Port `3000` is already in use.
+- Stop old Next processes or run explicitly on `3000`:
 
 ```bash
-# Scale API Gateway
-kubectl scale deployment api-gateway --replicas=5
-
-# Scale workers
-kubectl scale deployment worker-service --replicas=10
+cd /Users/JMM9/Documents/projects/ai_specifics/enterprise-rag-system/frontend
+npm run dev -- -p 3000
 ```
 
-### GPU Scheduling
+### Retrieval/chat works but responses are empty
+- Confirm document status is `completed`.
+- Confirm embedding/reranker health both show `model_status: ready`.
+- Confirm Pinecone index contains vectors.
 
-GPU workloads automatically schedule on GPU-enabled nodes:
-
-```yaml
-resources:
-  limits:
-    nvidia.com/gpu: 1
-```
-
----
-
-## 📊 Observability
-
-### Metrics
-
-Access Grafana dashboards at http://localhost:3001:
-
-- **Overview Dashboard** - Request rate, errors, latency
-- **RAG Pipeline** - Retrieval latency, LLM throughput
-- **GPU Monitoring** - GPU utilization, memory
-
-### Logging
-
-Structured JSON logs with correlation IDs:
-
+## Helpful commands
 ```bash
-# View logs
-docker-compose logs -f chat-service
+# Start everything
+docker compose up -d
 
-# Search logs
-docker-compose logs | grep correlation_id=abc123
+# Tail logs
+docker compose logs -f backend
+docker compose logs -f worker
+
+# Stop stack
+docker compose down
 ```
 
-### Tracing
-
-OpenTelemetry traces exported to Jaeger:
-
-- Each RAG query traced end-to-end
-- Spans for embedding, retrieval, reranking, generation
-
----
-
-## 🔐 Security
-
-### Authentication
-
-- JWT-based authentication
-- Token expiration (24 hours)
-- Refresh token support
-
-### Multi-Tenant Isolation
-
-- User-scoped vector search (Pinecone filters)
-- Database-level user_id filtering
-- No cross-user data leakage
-
-### Input Validation
-
-- File type validation (PDF, TXT only)
-- File size limits (50MB)
-- Query length limits
-- Pydantic schema validation
-
----
-
-## 📈 Scaling Considerations
-
-### Horizontal Scaling
-
-- **Stateless services** - Scale with HPA based on CPU/memory
-- **Embedding service** - Add GPU nodes
-- **LLM service** - Increase replicas (requires GPUs)
-- **Workers** - Scale based on queue depth
-
-### Vertical Scaling
-
-- **LLM inference** - Use larger GPUs (A100, H100)
-- **Database** - Increase connection pool
-- **Redis** - Use Redis Cluster
-
-### Cost Optimization
-
-- Use 4-bit quantization for LLM (5GB VRAM vs 16GB)
-- Cache embeddings in Redis (TTL: 1 hour)
-- Batch document processing overnight
-- Use spot instances for workers
-
----
-
-## 🛠️ Troubleshooting
-
-### Common Issues
-
-**LLM service not starting:**
-```bash
-# Check GPU availability
-nvidia-smi
-
-# Check model download
-docker-compose exec llm-service ls /models
-```
-
-**Slow embedding generation:**
-```bash
-# Check GPU utilization
-docker-compose exec embedding-service nvidia-smi
-
-# Increase batch size in config
-```
-
-**Pinecone connection errors:**
-```bash
-# Verify API key
-echo $PINECONE_API_KEY
-
-# Test connection
-python scripts/test_pinecone.py
-```
-
----
-
-## 🤝 Contributing
-
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
----
-
-## 📝 License
-
-This project is licensed under the MIT License - see [LICENSE](LICENSE) file.
-
----
-
-## 🙏 Acknowledgments
-
-### Open Source Models
-
-- **Meta AI** - Llama 3.1 (best 8B model for RAG)
-- **BAAI** - BGE-M3 & BGE-reranker-v2-m3 (SOTA retrieval)
-- **vLLM Team** - High-performance LLM serving
-
-### Technologies
-
-- FastAPI, Next.js, PostgreSQL, Redis, Pinecone
-- Docker, Kubernetes, Prometheus, Grafana
-- LangChain, OpenTelemetry, LangFuse
-
----
-
-## 📬 Contact
-
-- **Documentation:** See `/docs/desing-docs/`
-- **Issues:** GitHub Issues
-- **Discussions:** GitHub Discussions
-
----
-
-**Built with ❤️ for production GenAI systems**
+## License
+MIT (see `LICENSE`).
