@@ -1,0 +1,39 @@
+[
+  {
+    "id": "ec-001",
+    "query": "Summarize this.",
+    "intent": "vague query",
+    "expected_behavior": "System should ask for clarification or provide a cautious high-level summary based on the selected document only."
+  },
+  {
+    "id": "ec-002",
+    "query": "??",
+    "intent": "very short ambiguous query",
+    "expected_behavior": "System should avoid hallucination and ask for a clearer question."
+  },
+  {
+    "id": "ec-003",
+    "query": "What is the company stock vesting schedule?",
+    "intent": "unsupported question",
+    "expected_behavior": "System should state that the uploaded context does not contain enough information."
+  },
+  {
+    "id": "ec-004",
+    "query": "Explain the retrieval pipeline, duplicate chunk risk, and encoding edge cases in one answer.",
+    "intent": "multi-topic query across fixtures",
+    "expected_behavior": "System should combine relevant sources only if they are present in the selected documents."
+  },
+  {
+    "id": "ec-005",
+    "query": "What does the sparse text fixture tell us about approvals?",
+    "intent": "thin-context query",
+    "expected_behavior": "System should answer minimally and avoid inventing policy details."
+  },
+  {
+    "id": "ec-006",
+    "query": "Does the unicode fixture contain multilingual content?",
+    "intent": "Unicode verification",
+    "expected_behavior": "System should answer yes and mention at least two languages from the fixture."
+  }
+]
+

@@ -1,0 +1,45 @@
+[
+  {
+    "id": "rt-001",
+    "query": "When must PTO requests be submitted?",
+    "target_document": "employee-handbook-excerpt.txt",
+    "expected_page": null,
+    "expected_keywords": ["10 business days", "PTO requests"]
+  },
+  {
+    "id": "rt-002",
+    "query": "What is the incident response Slack channel?",
+    "target_document": "incident-response-playbook.txt",
+    "expected_page": null,
+    "expected_keywords": ["#incident-war-room"]
+  },
+  {
+    "id": "rt-003",
+    "query": "What chunk overlap is recommended?",
+    "target_document": "rag-onboarding-guide.pdf",
+    "expected_page": 1,
+    "expected_keywords": ["50 character overlap", "chunking"]
+  },
+  {
+    "id": "rt-004",
+    "query": "What vector database does the architecture overview use?",
+    "target_document": "architecture-overview.pdf",
+    "expected_page": 2,
+    "expected_keywords": ["Pinecone", "vector database"]
+  },
+  {
+    "id": "rt-005",
+    "query": "How long are audit logs retained?",
+    "target_document": "compliance-faq.pdf",
+    "expected_page": 1,
+    "expected_keywords": ["365 days", "audit logs"]
+  },
+  {
+    "id": "rt-006",
+    "query": "Which model should encode both queries and document chunks?",
+    "target_document": "architecture-overview.pdf",
+    "expected_page": 2,
+    "expected_keywords": ["BAAI/bge-m3", "same model"]
+  }
+]
+

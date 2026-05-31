@@ -1,0 +1,11 @@
+Repeated Paragraph Fixture
+==========================
+
+The retrieval service embeds the user query, searches the vector database, reranks the candidates, and builds final context for the language model.
+The retrieval service embeds the user query, searches the vector database, reranks the candidates, and builds final context for the language model.
+The retrieval service embeds the user query, searches the vector database, reranks the candidates, and builds final context for the language model.
+The retrieval service embeds the user query, searches the vector database, reranks the candidates, and builds final context for the language model.
+The retrieval service embeds the user query, searches the vector database, reranks the candidates, and builds final context for the language model.
+
+This file is meant to test duplicate or near-duplicate chunk behavior.
+

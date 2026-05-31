@@ -1,0 +1,27 @@
+[
+  {
+    "name": "pto-policy-lookup",
+    "payload": {
+      "query": "How many business days in advance should PTO be requested?",
+      "document_ids": [],
+      "top_k": 5
+    }
+  },
+  {
+    "name": "embedding-model-consistency",
+    "payload": {
+      "query": "Which embedding model should be used for both document chunks and queries?",
+      "document_ids": [],
+      "top_k": 5
+    }
+  },
+  {
+    "name": "audit-log-retention",
+    "payload": {
+      "query": "How long are audit logs retained?",
+      "document_ids": [],
+      "top_k": 5
+    }
+  }
+]
+

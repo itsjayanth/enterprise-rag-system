@@ -1,0 +1,18 @@
+Unicode and Formatting Fixture
+==============================
+
+Résumé review — café support — naïve parsing checks.
+
+Bullet styles:
+• Primary bullet with Unicode dot
+– En dash bullet variant
+→ Arrow bullet variant
+
+Multilingual snippets:
+- English: Query embeddings must use the same model as stored document vectors.
+- Español: El índice vectorial usa metadatos para filtrar resultados.
+- العربية: يجب أن تستخدم الاستعلامات نفس نموذج التضمين.
+- 日本語: 検索クエリと文書チャンクは同じ埋め込みモデルを使います。
+
+This file is meant to expose encoding and normalization issues.
+

@@ -1,0 +1,75 @@
+[
+  {
+    "file": "sample-documents/small-txt/employee-handbook-excerpt.txt",
+    "format": "txt",
+    "purpose": "policy lookup and citation validation",
+    "approx_pages": 1,
+    "topics": ["pto", "remote work", "expenses", "physical security"],
+    "edge_case": false
+  },
+  {
+    "file": "sample-documents/small-txt/incident-response-playbook.txt",
+    "format": "txt",
+    "purpose": "incident-response retrieval and chat tests",
+    "approx_pages": 1,
+    "topics": ["severity 1", "slack channel", "status updates", "postmortem"],
+    "edge_case": false
+  },
+  {
+    "file": "sample-documents/small-pdf/rag-onboarding-guide.pdf",
+    "format": "pdf",
+    "purpose": "rag pipeline retrieval checks",
+    "approx_pages": 2,
+    "topics": ["uploads", "chunking", "embeddings", "pinecone", "reranking"],
+    "edge_case": false
+  },
+  {
+    "file": "sample-documents/small-pdf/compliance-faq.pdf",
+    "format": "pdf",
+    "purpose": "faq-style compliance retrieval",
+    "approx_pages": 2,
+    "topics": ["audit logs", "secrets", "access approval", "badge reporting"],
+    "edge_case": false
+  },
+  {
+    "file": "sample-documents/medium-pdf/architecture-overview.pdf",
+    "format": "pdf",
+    "purpose": "multi-page architecture retrieval and summarization",
+    "approx_pages": 3,
+    "topics": ["backend", "frontend", "pinecone", "bge-m3", "vllm", "sse"],
+    "edge_case": false
+  },
+  {
+    "file": "sample-documents/edge-cases/empty-document.txt",
+    "format": "txt",
+    "purpose": "empty-file ingestion failure handling",
+    "approx_pages": 0,
+    "topics": ["empty content"],
+    "edge_case": true
+  },
+  {
+    "file": "sample-documents/edge-cases/repeated-paragraphs.txt",
+    "format": "txt",
+    "purpose": "duplicate chunk and ranking tests",
+    "approx_pages": 1,
+    "topics": ["duplicate content", "retrieval pipeline"],
+    "edge_case": true
+  },
+  {
+    "file": "sample-documents/edge-cases/unicode-formatting.txt",
+    "format": "txt",
+    "purpose": "Unicode parsing and multilingual retrieval checks",
+    "approx_pages": 1,
+    "topics": ["unicode", "multilingual", "formatting"],
+    "edge_case": true
+  },
+  {
+    "file": "sample-documents/edge-cases/sparse-text.pdf",
+    "format": "pdf",
+    "purpose": "low-text PDF handling",
+    "approx_pages": 1,
+    "topics": ["sparse text", "thin context"],
+    "edge_case": true
+  }
+]
+
