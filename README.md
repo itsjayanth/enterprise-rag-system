@@ -3,7 +3,7 @@
 Enterprise RAG app for uploading PDF/TXT files and chatting with grounded answers.
 Backend is FastAPI + Celery + PostgreSQL + Redis + Pinecone, with local Ollama for LLM generation.
 
-## Flow (2 lines)
+## Flow
 1. Upload -> worker parses/chunks -> embedding service creates vectors -> Pinecone stores/searches chunks.
 2. Chat query -> retrieval (embed + search + rerank) -> Ollama streams answer via SSE with sources.
 
